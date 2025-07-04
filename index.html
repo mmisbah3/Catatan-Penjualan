@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pencatat Penjualan Fira's Cell</title>
+    <title>Pencatat Penjualan</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Inter Font -->
@@ -24,6 +24,8 @@
         input[type="date"],
         input[type="text"],
         input[type="number"],
+        input[type="email"],
+        input[type="password"],
         select {
             display: block;
             width: 100%;
@@ -107,71 +109,112 @@
                 min-width: 700px; /* Ensure table doesn't get too narrow with new column */
             }
         }
+        .auth-section {
+            display: none; /* Hidden by default, shown when user is not authenticated */
+        }
+        .app-section {
+            display: none; /* Hidden by default, shown when user is authenticated */
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Pencatat Penjualan</h1>
 
-        <!-- Form Penjualan -->
-        <div class="bg-gray-50 p-6 rounded-xl shadow-inner mb-8">
-            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Input Penjualan Baru</h2>
-            <form id="salesForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Authentication Section -->
+        <div id="authSection" class="auth-section bg-gray-50 p-6 rounded-xl shadow-inner mb-8">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4 text-center">Autentikasi Pengguna</h2>
+            <div class="flex justify-center mb-4">
+                <button id="showLoginBtn" class="bg-gray-200 text-gray-700 hover:bg-gray-300 px-4 py-2 rounded-lg mr-2">Login</button>
+                <button id="showRegisterBtn" class="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded-lg">Daftar</button>
+            </div>
+
+            <form id="authForm" class="grid grid-cols-1 gap-4">
                 <div>
-                    <label for="saleDate" class="block text-gray-700 text-sm font-medium mb-1">Tanggal:</label>
-                    <input type="date" id="saleDate" required class="focus:ring-indigo-500 focus:border-indigo-500">
+                    <label for="authEmail" class="block text-gray-700 text-sm font-medium mb-1">Email:</label>
+                    <input type="email" id="authEmail" placeholder="email@example.com" required class="focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
                 <div>
-                    <label for="itemName" class="block text-gray-700 text-sm font-medium mb-1">Nama:</label>
-                    <input type="text" id="itemName" placeholder="Nama Pelanggan" required class="focus:ring-indigo-500 focus:border-indigo-500">
+                    <label for="authPassword" class="block text-gray-700 text-sm font-medium mb-1">Password:</label>
+                    <input type="password" id="authPassword" placeholder="Minimal 6 karakter" required class="focus:ring-indigo-500 focus:border-indigo-500">
                 </div>
-                <div>
-                    <label for="itemType" class="block text-gray-700 text-sm font-medium mb-1">Jenis Barang:</label>
-                    <input type="text" id="itemType" placeholder="Contoh: P10, P20, P50, P100" required class="focus:ring-indigo-500 focus:border-indigo-500">
-                </div>
-                <div>
-                    <label for="itemPrice" class="block text-gray-700 text-sm font-medium mb-1">Harga (Rp):</label>
-                    <input type="number" id="itemPrice" placeholder="Contoh: 12500000" required min="0" class="focus:ring-indigo-500 focus:border-indigo-500">
-                </div>
-                <div class="md:col-span-2 flex justify-end items-center mt-4">
-                    <button type="submit" id="saveButton">
-                        <span id="buttonText">Simpan Penjualan</span>
-                        <div id="loadingSpinner" class="loading-spinner ml-2"></div>
+                <div class="flex justify-end items-center mt-4">
+                    <button type="submit" id="authSubmitButton">
+                        <span id="authButtonText">Daftar</span>
+                        <div id="authLoadingSpinner" class="loading-spinner ml-2"></div>
                     </button>
                 </div>
             </form>
-            <div id="messageBox" class="message-box"></div>
+            <div id="authMessageBox" class="message-box"></div>
         </div>
 
-        <!-- Daftar Penjualan -->
-        <div class="bg-white p-6 rounded-xl shadow-inner">
-            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Daftar Penjualan</h2>
-            <p class="text-gray-600 text-sm mb-4">ID Pengguna Anda: <span id="userIdDisplay" class="font-mono text-indigo-700 break-all">Memuat...</span></p>
-            <div id="salesListContainer" class="table-container bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">Tanggal</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Barang</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga (Rp)</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="salesTableBody" class="bg-white divide-y divide-gray-200">
-                        <!-- Data penjualan akan dimuat di sini -->
-                        <tr>
-                            <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Memuat data penjualan...</td>
-                        </tr>
-                    </tbody>
-                    <tfoot class="bg-gray-100">
-                        <tr>
-                            <td colspan="3" class="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Total Penjualan:</td>
-                            <td id="totalSalesAmount" class="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Rp 0</td>
-                            <td class="px-6 py-3"></td> <!-- Empty cell for actions column -->
-                        </tr>
-                    </tfoot>
-                </table>
+        <!-- Main Application Section (Hidden until authenticated) -->
+        <div id="appSection" class="app-section">
+            <div class="flex justify-between items-center mb-6">
+                <p class="text-gray-600 text-sm">Masuk sebagai: <span id="currentUserDisplay" class="font-mono text-indigo-700 break-all"></span></p>
+                <button id="logoutButton" class="bg-red-600 hover:bg-red-700 px-4 py-2 text-white rounded-lg">Logout</button>
+            </div>
+
+            <!-- Form Penjualan -->
+            <div class="bg-gray-50 p-6 rounded-xl shadow-inner mb-8">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Input Penjualan Baru</h2>
+                <form id="salesForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="saleDate" class="block text-gray-700 text-sm font-medium mb-1">Tanggal:</label>
+                        <input type="date" id="saleDate" required class="focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="itemName" class="block text-gray-700 text-sm font-medium mb-1">Nama:</label>
+                        <input type="text" id="itemName" placeholder="Nama Pelanggan" required class="focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="itemType" class="block text-gray-700 text-sm font-medium mb-1">Jenis Barang:</label>
+                        <input type="text" id="itemType" placeholder="Contoh: P10, P20, P50, P100" required class="focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="itemPrice" class="block text-gray-700 text-sm font-medium mb-1">Harga (Rp):</label>
+                        <input type="number" id="itemPrice" placeholder="Contoh: 12500000" required min="0" class="focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div class="md:col-span-2 flex justify-end items-center mt-4">
+                        <button type="submit" id="saveButton">
+                            <span id="buttonText">Simpan Penjualan</span>
+                            <div id="loadingSpinner" class="loading-spinner ml-2"></div>
+                        </button>
+                    </div>
+                </form>
+                <div id="messageBox" class="message-box"></div>
+            </div>
+
+            <!-- Daftar Penjualan -->
+            <div class="bg-white p-6 rounded-xl shadow-inner">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4">Daftar Penjualan</h2>
+                <p class="text-gray-600 text-sm mb-4">ID Pengguna Anda: <span id="userIdDisplay" class="font-mono text-indigo-700 break-all">Memuat...</span></p>
+                <div id="salesListContainer" class="table-container bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">Tanggal</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Barang</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga (Rp)</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="salesTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Data penjualan akan dimuat di sini -->
+                            <tr>
+                                <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Memuat data penjualan...</td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="bg-gray-100">
+                            <tr>
+                                <td colspan="3" class="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Total Penjualan:</td>
+                                <td id="totalSalesAmount" class="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Rp 0</td>
+                                <td class="px-6 py-3"></td> <!-- Empty cell for actions column -->
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -179,7 +222,7 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Ganti baris di bawah ini dengan konfigurasi Firebase Anda yang sebenarnya
@@ -200,7 +243,24 @@
         let auth;
         let userId = 'unknown'; // Default value, will be updated on auth state change
         let currentEditingSaleId = null; // To keep track of the sale being edited
+        let isRegisterMode = false; // To toggle between login and register forms
 
+        // UI Elements for Authentication
+        const authSection = document.getElementById('authSection');
+        const appSection = document.getElementById('appSection');
+        const showLoginBtn = document.getElementById('showLoginBtn');
+        const showRegisterBtn = document.getElementById('showRegisterBtn');
+        const authForm = document.getElementById('authForm');
+        const authEmailInput = document.getElementById('authEmail');
+        const authPasswordInput = document.getElementById('authPassword');
+        const authSubmitButton = document.getElementById('authSubmitButton');
+        const authButtonText = document.getElementById('authButtonText');
+        const authLoadingSpinner = document.getElementById('authLoadingSpinner');
+        const authMessageBox = document.getElementById('authMessageBox');
+        const currentUserDisplay = document.getElementById('currentUserDisplay');
+        const logoutButton = document.getElementById('logoutButton');
+
+        // UI Elements for Sales App
         const salesForm = document.getElementById('salesForm');
         const saleDateInput = document.getElementById('saleDate');
         const itemNameInput = document.getElementById('itemName');
@@ -218,13 +278,14 @@
          * Displays a message in the message box.
          * @param {string} message - The message to display.
          * @param {'success'|'error'} type - The type of message (success or error).
+         * @param {HTMLElement} targetMessageBox - The message box element to use.
          */
-        function showMessage(message, type) {
-            messageBox.textContent = message;
-            messageBox.className = `message-box ${type}`;
-            messageBox.style.display = 'block';
+        function showMessage(message, type, targetMessageBox = messageBox) {
+            targetMessageBox.textContent = message;
+            targetMessageBox.className = `message-box ${type}`;
+            targetMessageBox.style.display = 'block';
             setTimeout(() => {
-                messageBox.style.display = 'none';
+                targetMessageBox.style.display = 'none';
             }, 5000); // Hide after 5 seconds
         }
 
@@ -232,16 +293,98 @@
          * Sets the loading state of the save button.
          * @param {boolean} isLoading - True if loading, false otherwise.
          * @param {boolean} isEditing - True if currently in edit mode.
+         * @param {HTMLElement} targetButton - The button element to control.
+         * @param {HTMLElement} targetButtonText - The span for button text.
+         * @param {HTMLElement} targetSpinner - The spinner element.
          */
-        function setLoading(isLoading, isEditing = false) {
+        function setLoading(isLoading, isEditing = false, targetButton = saveButton, targetButtonText = buttonText, targetSpinner = loadingSpinner) {
             if (isLoading) {
-                buttonText.textContent = isEditing ? 'Memperbarui...' : 'Menyimpan...';
-                loadingSpinner.style.display = 'block';
-                saveButton.disabled = true;
+                targetButtonText.textContent = isEditing ? 'Memperbarui...' : 'Menyimpan...';
+                targetSpinner.style.display = 'block';
+                targetButton.disabled = true;
             } else {
-                buttonText.textContent = isEditing ? 'Perbarui Penjualan' : 'Simpan Penjualan';
-                loadingSpinner.style.display = 'none';
-                saveButton.disabled = false;
+                targetButtonText.textContent = isEditing ? 'Perbarui Penjualan' : 'Simpan Penjualan';
+                targetSpinner.style.display = 'none';
+                targetButton.disabled = false;
+            }
+        }
+
+        /**
+         * Toggles the authentication form between login and registration mode.
+         * @param {boolean} isRegister - True for register mode, false for login mode.
+         */
+        function toggleAuthMode(isRegister) {
+            isRegisterMode = isRegister;
+            if (isRegister) {
+                authButtonText.textContent = 'Daftar';
+                showRegisterBtn.classList.add('bg-indigo-600', 'text-white');
+                showRegisterBtn.classList.remove('bg-gray-200', 'text-gray-700');
+                showLoginBtn.classList.add('bg-gray-200', 'text-gray-700');
+                showLoginBtn.classList.remove('bg-indigo-600', 'text-white');
+            } else {
+                authButtonText.textContent = 'Login';
+                showLoginBtn.classList.add('bg-indigo-600', 'text-white');
+                showLoginBtn.classList.remove('bg-gray-200', 'text-gray-700');
+                showRegisterBtn.classList.add('bg-gray-200', 'text-gray-700');
+                showRegisterBtn.classList.remove('bg-indigo-600', 'text-white');
+            }
+            authEmailInput.value = '';
+            authPasswordInput.value = '';
+            authMessageBox.style.display = 'none';
+        }
+
+        /**
+         * Handles user registration or login.
+         */
+        async function handleAuthSubmit(e) {
+            e.preventDefault();
+            const email = authEmailInput.value;
+            const password = authPasswordInput.value;
+
+            if (!email || !password) {
+                showMessage("Email dan Password harus diisi.", "error", authMessageBox);
+                return;
+            }
+
+            setLoading(true, false, authSubmitButton, authButtonText, authLoadingSpinner);
+            try {
+                if (isRegisterMode) {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                    showMessage("Pendaftaran berhasil! Anda sekarang masuk.", "success", authMessageBox);
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    showMessage("Login berhasil!", "success", authMessageBox);
+                }
+                authEmailInput.value = '';
+                authPasswordInput.value = '';
+            } catch (error) {
+                console.error("Kesalahan autentikasi:", error);
+                let errorMessage = "Terjadi kesalahan autentikasi.";
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = "Email sudah digunakan. Coba login atau gunakan email lain.";
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = "Format email tidak valid.";
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = "Password terlalu lemah (minimal 6 karakter).";
+                } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    errorMessage = "Email atau password salah.";
+                }
+                showMessage(errorMessage, "error", authMessageBox);
+            } finally {
+                setLoading(false, false, authSubmitButton, authButtonText, authLoadingSpinner);
+            }
+        }
+
+        /**
+         * Handles user logout.
+         */
+        async function handleLogout() {
+            try {
+                await signOut(auth);
+                showMessage("Anda telah logout.", "success", authMessageBox);
+            } catch (error) {
+                console.error("Kesalahan logout:", error);
+                showMessage("Gagal logout: " + error.message, "error", authMessageBox);
             }
         }
 
@@ -250,11 +393,15 @@
          */
         async function initializeFirebase() {
             try {
+                // Check if firebaseConfig is empty, which might happen if running locally without manual setup
                 if (Object.keys(firebaseConfig).length === 0) {
-                    console.error("Firebase config is missing. Please ensure __firebase_config is provided.");
-                    showMessage("Kesalahan: Konfigurasi Firebase tidak ditemukan.", "error");
+                    console.error("Firebase config is missing. Please ensure __firebase_config is provided by Canvas, or set it manually if running locally.");
+                    showMessage("Kesalahan: Konfigurasi Firebase tidak ditemukan. Pastikan Anda telah menghubungkan proyek Firebase Anda.", "error");
+                    userIdDisplay.textContent = "Gagal memuat ID pengguna (Konfigurasi Firebase hilang).";
+                    authSection.style.display = 'block'; // Show auth section if config is missing
                     return;
                 }
+                
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
@@ -264,23 +411,41 @@
                     if (user) {
                         userId = user.uid;
                         userIdDisplay.textContent = userId;
+                        currentUserDisplay.textContent = user.email || "Pengguna Anonim"; // Display email or "Anonymous User"
                         console.log("Pengguna terautentikasi:", userId);
+                        
+                        authSection.style.display = 'none'; // Hide auth section
+                        appSection.style.display = 'block'; // Show main app section
+                        
                         // Start listening to sales data once authenticated
                         listenForSalesData();
                     } else {
-                        // If no user, try to sign in
-                        try {
-                            if (initialAuthToken) {
+                        userId = 'unknown';
+                        userIdDisplay.textContent = "Tidak terautentikasi";
+                        currentUserDisplay.textContent = "Tidak terautentikasi";
+                        
+                        authSection.style.display = 'block'; // Show auth section
+                        appSection.style.display = 'none'; // Hide main app section
+                        salesTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Silakan login atau daftar untuk melihat data penjualan.</td></tr>`;
+                        totalSalesAmount.textContent = "Rp 0";
+                        
+                        // If running in Canvas and no user, try anonymous sign-in
+                        if (initialAuthToken) {
+                            try {
                                 await signInWithCustomToken(auth, initialAuthToken);
                                 console.log("Berhasil masuk dengan token kustom.");
-                            } else {
+                            } catch (error) {
+                                console.error("Kesalahan saat masuk dengan token kustom:", error);
+                                showMessage("Kesalahan saat autentikasi otomatis: " + error.message, "error", authMessageBox);
+                            }
+                        } else if (typeof __app_id !== 'undefined') { // Only try anonymous if in Canvas environment and no token
+                            try {
                                 await signInAnonymously(auth);
                                 console.log("Berhasil masuk secara anonim.");
+                            } catch (error) {
+                                console.error("Kesalahan saat masuk secara anonim:", error);
+                                showMessage("Kesalahan saat autentikasi anonim: " + error.message, "error", authMessageBox);
                             }
-                        } catch (error) {
-                            console.error("Kesalahan saat masuk:", error);
-                            showMessage("Kesalahan saat autentikasi: " + error.message, "error");
-                            userIdDisplay.textContent = "Gagal memuat ID pengguna.";
                         }
                     }
                 });
@@ -296,7 +461,7 @@
          */
         async function saveOrUpdateSale(saleData) {
             if (!db || !userId || userId === 'unknown') {
-                showMessage("Kesalahan: Aplikasi belum siap atau ID pengguna tidak tersedia.", "error");
+                showMessage("Kesalahan: Aplikasi belum siap atau ID pengguna tidak tersedia. Silakan login.", "error");
                 console.error("Firestore DB atau userId tidak tersedia.");
                 return;
             }
@@ -351,7 +516,7 @@
          */
         async function deleteSale(id) {
             if (!db || !userId || userId === 'unknown') {
-                showMessage("Kesalahan: Aplikasi belum siap atau ID pengguna tidak tersedia.", "error");
+                showMessage("Kesalahan: Aplikasi belum siap atau ID pengguna tidak tersedia. Silakan login.", "error");
                 console.error("Firestore DB atau userId tidak tersedia.");
                 return;
             }
@@ -378,12 +543,14 @@
         function listenForSalesData() {
             if (!db || !userId || userId === 'unknown') {
                 console.warn("Tidak dapat mendengarkan data penjualan: DB atau ID pengguna tidak tersedia.");
-                salesTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Autentikasi diperlukan untuk memuat data.</td></tr>`;
+                salesTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Silakan login atau daftar untuk melihat data penjualan.</td></tr>`;
                 totalSalesAmount.textContent = "Rp 0";
                 return;
             }
 
-            const salesCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/sales_records`);
+            const salesCollectionPath = `artifacts/${appId}/users/${userId}/sales_records`;
+            console.log(`Mencoba mendengarkan data dari: ${salesCollectionPath}`); // Log path for debugging
+            const salesCollectionRef = collection(db, salesCollectionPath);
             const q = query(salesCollectionRef);
 
             onSnapshot(q, (snapshot) => {
@@ -473,7 +640,13 @@
             });
         }
 
-        // Event Listener for form submission
+        // Event Listeners for Authentication
+        showLoginBtn.addEventListener('click', () => toggleAuthMode(false));
+        showRegisterBtn.addEventListener('click', () => toggleAuthMode(true));
+        authForm.addEventListener('submit', handleAuthSubmit);
+        logoutButton.addEventListener('click', handleLogout);
+
+        // Event Listener for sales form submission
         salesForm.addEventListener('submit', (e) => {
             e.preventDefault(); // Prevent default form submission
 
