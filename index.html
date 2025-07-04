@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pencatat Penjualan Fira's Cell</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .container {
+            max-width: 90%; /* Fluid width */
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background-color: #ffffff;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+        }
+        input[type="date"],
+        input[type="text"],
+        input[type="number"],
+        select {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            margin-top: 0.5rem;
+            border: 1px solid #d1d5db; /* border-gray-300 */
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: inset 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        input:focus,
+        select:focus {
+            border-color: #6366f1; /* indigo-500 */
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25); /* ring-indigo-200 */
+        }
+        button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem; /* rounded-lg */
+            font-weight: 600; /* font-semibold */
+            color: #ffffff;
+            background-color: #6366f1; /* indigo-600 */
+            transition: background-color 0.15s ease-in-out;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background-color: #4f46e5; /* indigo-700 */
+        }
+        .edit-button {
+            background-color: #2563eb; /* blue-600 */
+            margin-right: 0.5rem;
+        }
+        .edit-button:hover {
+            background-color: #1d4ed8; /* blue-700 */
+        }
+        .delete-button {
+            background-color: #dc2626; /* red-600 */
+        }
+        .delete-button:hover {
+            background-color: #b91c1c; /* red-700 */
+        }
+        .message-box {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            font-weight: 500;
+            display: none; /* Hidden by default */
+        }
+        .message-box.success {
+            background-color: #d1fae5; /* green-100 */
+            color: #065f46; /* green-800 */
+        }
+        .message-box.error {
+            background-color: #fee2e2; /* red-100 */
+            color: #991b1b; /* red-800 */
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #6366f1;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: none; /* Hidden by default */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Responsive table */
+        @media (max-width: 768px) {
+            .table-container {
+                overflow-x: auto;
+            }
+            table {
+                width: 100%;
+                min-width: 700px; /* Ensure table doesn't get too narrow with new column */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Pencatat Penjualan</h1>
+
+        <!-- Form Penjualan -->
+        <div class="bg-gray-50 p-6 rounded-xl shadow-inner mb-8">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Input Penjualan Baru</h2>
+            <form id="salesForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="saleDate" class="block text-gray-700 text-sm font-medium mb-1">Tanggal:</label>
+                    <input type="date" id="saleDate" required class="focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="itemName" class="block text-gray-700 text-sm font-medium mb-1">Nama:</label>
+                    <input type="text" id="itemName" placeholder="Nama Pelanggan" required class="focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="itemType" class="block text-gray-700 text-sm font-medium mb-1">Jenis Barang:</label>
+                    <input type="text" id="itemType" placeholder="Contoh: P10, P20, P50, P100" required class="focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="itemPrice" class="block text-gray-700 text-sm font-medium mb-1">Harga (Rp):</label>
+                    <input type="number" id="itemPrice" placeholder="Contoh: 12500000" required min="0" class="focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div class="md:col-span-2 flex justify-end items-center mt-4">
+                    <button type="submit" id="saveButton">
+                        <span id="buttonText">Simpan Penjualan</span>
+                        <div id="loadingSpinner" class="loading-spinner ml-2"></div>
+                    </button>
+                </div>
+            </form>
+            <div id="messageBox" class="message-box"></div>
+        </div>
+
+        <!-- Daftar Penjualan -->
+        <div class="bg-white p-6 rounded-xl shadow-inner">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Daftar Penjualan</h2>
+            <p class="text-gray-600 text-sm mb-4">ID Pengguna Anda: <span id="userIdDisplay" class="font-mono text-indigo-700 break-all">Memuat...</span></p>
+            <div id="salesListContainer" class="table-container bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">Tanggal</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Barang</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga (Rp)</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Data penjualan akan dimuat di sini -->
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Memuat data penjualan...</td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="bg-gray-100">
+                        <tr>
+                            <td colspan="3" class="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Total Penjualan:</td>
+                            <td id="totalSalesAmount" class="px-6 py-3 text-left text-xs font-medium text-gray-900 uppercase tracking-wider">Rp 0</td>
+                            <td class="px-6 py-3"></td> <!-- Empty cell for actions column -->
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Ganti baris di bawah ini dengan konfigurasi Firebase Anda yang sebenarnya
+        const firebaseConfig = {
+        apiKey: "AIzaSyA3tIn26leYU4CDGGd9nvUtuKnu6AmP_ws", // Ganti dengan apiKey Anda
+        authDomain: "pencatat-penjualan-app.firebaseapp.com", // Ganti dengan authDomain Anda
+        projectId: "pencatat-penjualan-app", // Ganti dengan projectId Anda
+        storageBucket: "pencatat-penjualan-app.firebasestorage.app", // Ganti dengan storageBucket Anda
+        messagingSenderId: "701334245798", // Ganti dengan messagingSenderId Anda
+        appId: "1:701334245798:web:bae7d828f2f70bee143f67" // Ganti dengan appId Anda
+        };
+
+        const appId = firebaseConfig.appId; // Menggunakan appId dari konfigurasi Firebase
+        const initialAuthToken = null; // Tidak diperlukan untuk pengembangan lokal tanpa token kustom
+
+        let app;
+        let db;
+        let auth;
+        let userId = 'unknown'; // Default value, will be updated on auth state change
+        let currentEditingSaleId = null; // To keep track of the sale being edited
+
+        const salesForm = document.getElementById('salesForm');
+        const saleDateInput = document.getElementById('saleDate');
+        const itemNameInput = document.getElementById('itemName');
+        const itemTypeInput = document.getElementById('itemType');
+        const itemPriceInput = document.getElementById('itemPrice');
+        const saveButton = document.getElementById('saveButton');
+        const buttonText = document.getElementById('buttonText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const messageBox = document.getElementById('messageBox');
+        const salesTableBody = document.getElementById('salesTableBody');
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        const totalSalesAmount = document.getElementById('totalSalesAmount');
+
+        /**
+         * Displays a message in the message box.
+         * @param {string} message - The message to display.
+         * @param {'success'|'error'} type - The type of message (success or error).
+         */
+        function showMessage(message, type) {
+            messageBox.textContent = message;
+            messageBox.className = `message-box ${type}`;
+            messageBox.style.display = 'block';
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, 5000); // Hide after 5 seconds
+        }
+
+        /**
+         * Sets the loading state of the save button.
+         * @param {boolean} isLoading - True if loading, false otherwise.
+         * @param {boolean} isEditing - True if currently in edit mode.
+         */
+        function setLoading(isLoading, isEditing = false) {
+            if (isLoading) {
+                buttonText.textContent = isEditing ? 'Memperbarui...' : 'Menyimpan...';
+                loadingSpinner.style.display = 'block';
+                saveButton.disabled = true;
+            } else {
+                buttonText.textContent = isEditing ? 'Perbarui Penjualan' : 'Simpan Penjualan';
+                loadingSpinner.style.display = 'none';
+                saveButton.disabled = false;
+            }
+        }
+
+        /**
+         * Initializes Firebase and sets up authentication.
+         */
+        async function initializeFirebase() {
+            try {
+                if (Object.keys(firebaseConfig).length === 0) {
+                    console.error("Firebase config is missing. Please ensure __firebase_config is provided.");
+                    showMessage("Kesalahan: Konfigurasi Firebase tidak ditemukan.", "error");
+                    return;
+                }
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Listen for auth state changes
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        userIdDisplay.textContent = userId;
+                        console.log("Pengguna terautentikasi:", userId);
+                        // Start listening to sales data once authenticated
+                        listenForSalesData();
+                    } else {
+                        // If no user, try to sign in
+                        try {
+                            if (initialAuthToken) {
+                                await signInWithCustomToken(auth, initialAuthToken);
+                                console.log("Berhasil masuk dengan token kustom.");
+                            } else {
+                                await signInAnonymously(auth);
+                                console.log("Berhasil masuk secara anonim.");
+                            }
+                        } catch (error) {
+                            console.error("Kesalahan saat masuk:", error);
+                            showMessage("Kesalahan saat autentikasi: " + error.message, "error");
+                            userIdDisplay.textContent = "Gagal memuat ID pengguna.";
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error("Kesalahan saat menginisialisasi Firebase:", error);
+                showMessage("Kesalahan saat menginisialisasi aplikasi: " + error.message, "error");
+            }
+        }
+
+        /**
+         * Adds a new sales record or updates an existing one in Firestore.
+         * @param {object} saleData - The sales data to add or update.
+         */
+        async function saveOrUpdateSale(saleData) {
+            if (!db || !userId || userId === 'unknown') {
+                showMessage("Kesalahan: Aplikasi belum siap atau ID pengguna tidak tersedia.", "error");
+                console.error("Firestore DB atau userId tidak tersedia.");
+                return;
+            }
+
+            setLoading(true, currentEditingSaleId !== null);
+            try {
+                const salesCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/sales_records`);
+
+                if (currentEditingSaleId) {
+                    // Update existing document
+                    const saleDocRef = doc(db, salesCollectionRef.path, currentEditingSaleId);
+                    await updateDoc(saleDocRef, saleData);
+                    showMessage("Penjualan berhasil diperbarui!", "success");
+                    currentEditingSaleId = null; // Reset editing state
+                    setLoading(false, false); // Reset button text to "Simpan Penjualan"
+                } else {
+                    // Add new document
+                    await addDoc(salesCollectionRef, {
+                        ...saleData,
+                        timestamp: new Date() // Add a timestamp for ordering
+                    });
+                    showMessage("Penjualan berhasil disimpan!", "success");
+                }
+                salesForm.reset(); // Clear the form
+            } catch (e) {
+                console.error("Kesalahan saat menyimpan/memperbarui dokumen: ", e);
+                showMessage("Kesalahan saat menyimpan/memperbarui penjualan: " + e.message, "error");
+            } finally {
+                setLoading(false, currentEditingSaleId !== null); // Ensure correct state after operation
+            }
+        }
+
+        /**
+         * Populates the form with data of a selected sale for editing.
+         * @param {string} id - The ID of the sale document to edit.
+         * @param {object} sale - The sale object containing data.
+         */
+        function editSale(id, sale) {
+            currentEditingSaleId = id;
+            saleDateInput.value = sale.date;
+            itemNameInput.value = sale.name;
+            itemTypeInput.value = sale.type;
+            itemPriceInput.value = sale.price;
+            buttonText.textContent = 'Perbarui Penjualan';
+            saveButton.classList.add('edit-mode'); // Optional: Add a class for styling edit state
+            showMessage("Mode Edit: Perbarui data di atas dan klik 'Perbarui Penjualan'.", "success");
+        }
+
+        /**
+         * Deletes a sales record from Firestore.
+         * @param {string} id - The ID of the sale document to delete.
+         */
+        async function deleteSale(id) {
+            if (!db || !userId || userId === 'unknown') {
+                showMessage("Kesalahan: Aplikasi belum siap atau ID pengguna tidak tersedia.", "error");
+                console.error("Firestore DB atau userId tidak tersedia.");
+                return;
+            }
+
+            // In a real app, you might add a confirmation modal here instead of direct deletion.
+            if (!confirm("Apakah Anda yakin ingin menghapus penjualan ini?")) { // Using confirm for simplicity, replace with custom modal in production
+                return;
+            }
+
+            try {
+                const salesCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/sales_records`);
+                const saleDocRef = doc(db, salesCollectionRef.path, id);
+                await deleteDoc(saleDocRef);
+                showMessage("Penjualan berhasil dihapus!", "success");
+            } catch (e) {
+                console.error("Kesalahan saat menghapus dokumen: ", e);
+                showMessage("Kesalahan saat menghapus penjualan: " + e.message, "error");
+            }
+        }
+
+        /**
+         * Listens for real-time updates to sales data from Firestore.
+         */
+        function listenForSalesData() {
+            if (!db || !userId || userId === 'unknown') {
+                console.warn("Tidak dapat mendengarkan data penjualan: DB atau ID pengguna tidak tersedia.");
+                salesTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Autentikasi diperlukan untuk memuat data.</td></tr>`;
+                totalSalesAmount.textContent = "Rp 0";
+                return;
+            }
+
+            const salesCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/sales_records`);
+            const q = query(salesCollectionRef);
+
+            onSnapshot(q, (snapshot) => {
+                const sales = [];
+                let totalAmount = 0;
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const price = parseFloat(data.itemPrice || 0); // Ensure price is a number
+                    sales.push({
+                        id: doc.id,
+                        date: data.saleDate,
+                        name: data.itemName,
+                        type: data.itemType,
+                        price: price
+                    });
+                    totalAmount += price;
+                });
+
+                // Sort sales by date (most recent first) in JavaScript
+                sales.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                renderSalesList(sales);
+                totalSalesAmount.textContent = `Rp ${totalAmount.toLocaleString('id-ID')}`;
+            }, (error) => {
+                console.error("Kesalahan saat mengambil data penjualan: ", error);
+                showMessage("Kesalahan saat memuat daftar penjualan: " + error.message, "error");
+                salesTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center text-red-600">Gagal memuat data penjualan.</td></tr>`;
+                totalSalesAmount.textContent = "Rp 0";
+            });
+        }
+
+        /**
+         * Formats a date string (YYYY-MM-DD) to DD MMMM YYYY (e.g., 04 Juli 2025).
+         * @param {string} dateString - The date string in YYYY-MM-DD format.
+         * @returns {string} The formatted date string.
+         */
+        function formatTanggal(dateString) {
+            const date = new Date(dateString + 'T00:00:00'); // Add T00:00:00 to avoid timezone issues
+            const options = { day: '2-digit', month: 'long', year: 'numeric' };
+            return date.toLocaleDateString('id-ID', options);
+        }
+
+        /**
+         * Renders the list of sales in the table.
+         * @param {Array<object>} sales - An array of sales objects.
+         */
+        function renderSalesList(sales) {
+            salesTableBody.innerHTML = ''; // Clear existing rows
+            if (sales.length === 0) {
+                salesTableBody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">Belum ada penjualan yang dicatat.</td></tr>`;
+                return;
+            }
+
+            sales.forEach(sale => {
+                const formattedDate = formatTanggal(sale.date); // Format the date here
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50'; // Add hover effect
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${formattedDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${sale.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${sale.type}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">Rp ${sale.price.toLocaleString('id-ID')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        <button class="edit-button px-3 py-1 text-white rounded-md text-xs font-semibold" data-id="${sale.id}">Edit</button>
+                        <button class="delete-button px-3 py-1 text-white rounded-md text-xs font-semibold" data-id="${sale.id}">Hapus</button>
+                    </td>
+                `;
+                salesTableBody.appendChild(row);
+            });
+
+            // Add event listeners to the newly created buttons
+            salesTableBody.querySelectorAll('.edit-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = e.target.dataset.id;
+                    const saleToEdit = sales.find(s => s.id === id);
+                    if (saleToEdit) {
+                        editSale(id, saleToEdit);
+                    }
+                });
+            });
+
+            salesTableBody.querySelectorAll('.delete-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = e.target.dataset.id;
+                    deleteSale(id);
+                });
+            });
+        }
+
+        // Event Listener for form submission
+        salesForm.addEventListener('submit', (e) => {
+            e.preventDefault(); // Prevent default form submission
+
+            const saleDate = saleDateInput.value;
+            const itemName = itemNameInput.value;
+            const itemType = itemTypeInput.value;
+            const itemPrice = parseFloat(itemPriceInput.value);
+
+            if (!saleDate || !itemName || !itemType || isNaN(itemPrice)) {
+                showMessage("Mohon lengkapi semua kolom input.", "error");
+                return;
+            }
+
+            const newSaleData = {
+                saleDate,
+                itemName,
+                itemType,
+                itemPrice
+            };
+
+            saveOrUpdateSale(newSaleData);
+        });
+
+        // Initialize Firebase when the window loads
+        window.onload = initializeFirebase;
+    </script>
+</body>
+</html>
