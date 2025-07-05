@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pencatat Penjualan</title>
+    <link href="assets/clipboard.png" rel="icon">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Inter Font -->
@@ -188,7 +190,7 @@
             <!-- Daftar Penjualan -->
             <div class="bg-white p-6 rounded-xl shadow-inner">
                 <h2 class="text-2xl font-semibold text-gray-700 mb-4">Daftar Penjualan</h2>
-                <p class="text-gray-600 text-sm mb-4">ID Pengguna Anda: <span id="userIdDisplay" class="font-mono text-indigo-700 break-all">Memuat...</span></p>
+                <p style="display: none;" class="text-gray-600 text-sm mb-4">ID Pengguna Anda: <span id="userIdDisplay" class="font-mono text-indigo-700 break-all">Memuat...</span></p>
                 <div id="salesListContainer" class="table-container bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-100">
