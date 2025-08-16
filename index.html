@@ -67,6 +67,13 @@
         .edit-button:hover {
             background-color: #1d4ed8; /* blue-700 */
         }
+        .print-button {
+            background-color: #10b981; /* green-500 */
+            margin-right: 0.5rem;
+        }
+        .print-button:hover {
+            background-color: #059669; /* green-600 */
+        }
         .delete-button {
             background-color: #dc2626; /* red-600 */
         }
@@ -311,6 +318,7 @@
             }
         }
 
+        
         /**
          * Toggles the authentication form between login and registration mode.
          * @param {boolean} isRegister - True for register mode, false for login mode.
@@ -615,7 +623,8 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${sale.name}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${sale.type}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">Rp ${sale.price.toLocaleString('id-ID')}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <td class="px-6 py-4 text-sm font-medium text-right">
+                        <button class="print-button px-3 py-1 text-white rounded-md text-xs font-semibold" data-id="${sale.id}">Cetak Nota</button>
                         <button class="edit-button px-3 py-1 text-white rounded-md text-xs font-semibold" data-id="${sale.id}">Edit</button>
                         <button class="delete-button px-3 py-1 text-white rounded-md text-xs font-semibold" data-id="${sale.id}">Hapus</button>
                     </td>
@@ -638,6 +647,22 @@
                 button.addEventListener('click', (e) => {
                     const id = e.target.dataset.id;
                     deleteSale(id);
+                });
+            });
+
+            salesTableBody.querySelectorAll('.print-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = e.target.dataset.id;
+                    const saleToPrint = sales.find(s => s.id === id);
+                    if (saleToPrint) {
+                        const params = new URLSearchParams({
+                            nama: saleToPrint.name,
+                            jenisBarang: saleToPrint.type,
+                            harga: saleToPrint.price,
+                            tanggal: saleToPrint.date
+                        });
+                        window.open(`nota.html?${params.toString()}`, '_blank');
+                    }
                 });
             });
         }

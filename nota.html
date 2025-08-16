@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Nota Pembayaran</title>
+    <link rel="stylesheet" href="css/nota.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Buat Nota Pembayaran</h1>
+        <form id="nota-form">
+            <div class="form-group">
+                <label for="nama">Nama Pelanggan:</label>
+                <input type="text" id="nama" required>
+            </div>
+            <div class="form-group">
+                <label for="nomorHp">Nomor HP:</label>
+                <input type="tel" id="nomorHp" required>
+            </div>
+            <div class="form-group">
+                <label for="jenisBarang">Jenis Barang / Jasa:</label>
+                <textarea id="jenisBarang" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="harga">Harga (Rp):</label>
+                <input type="number" id="harga" required>
+            </div>
+            <button type="submit">Buat Nota</button>
+        </form>
+    </div>
+
+    <div id="area-nota" class="hidden">
+        <div id="nota-hasil">
+            <div class="nota-header">
+                <h2>NOTA PEMBAYARAN FIRA CELL</h2>
+                <p>Status: <span class="sukses">SUKSES</span></p>
+            </div>
+            <div class="nota-body">
+                <p><strong>Tanggal:</strong> <span id="nota-tanggal"></span></p>
+                <p><strong>Nama:</strong> <span id="nota-nama"></span></p>
+                <p><strong>No. HP:</strong> <span id="nota-nomorHp"></span></p>
+                <hr>
+                <p><strong>Barang:</strong></p>
+                <p><span id="nota-jenisBarang"></span></p>
+                <hr>
+                <div class="total-harga">
+                    <p><strong>TOTAL BAYAR:</strong></p>
+                    <p class="harga-besar"><span id="nota-harga"></span></p>
+                </div>
+            </div>
+            <div class="nota-footer">
+                <p>Terima kasih atas pembayaran Anda!</p>
+            </div>
+        </div>
+        <button id="tombol-cetak" onclick="window.print()">Cetak Nota</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const formContainer = document.querySelector('.container');
+            const notaArea = document.getElementById('area-nota');
+            const notaForm = document.getElementById('nota-form');
+
+            // Function to format date to "DD MMMM YYYY"
+            function formatTanggal(dateString) {
+                if (!dateString) { // If no date string, use today's date
+                    return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+                }
+                const date = new Date(dateString + 'T00:00:00'); // Add time to avoid timezone issues
+                const options = { day: '2-digit', month: 'long', year: 'numeric' };
+                return date.toLocaleDateString('id-ID', options);
+            }
+
+            // Function to format number to Indonesian Rupiah
+            function formatRupiah(angka) {
+                return `Rp ${parseFloat(angka).toLocaleString('id-ID')}`;
+            }
+
+            // Check for URL parameters to auto-fill and display the receipt
+            const urlParams = new URLSearchParams(window.location.search);
+            const nama = urlParams.get('nama');
+            const jenisBarang = urlParams.get('jenisBarang');
+            const harga = urlParams.get('harga');
+            const tanggal = urlParams.get('tanggal');
+
+            if (nama && jenisBarang && harga && tanggal) {
+                // If params exist, we are printing an existing record from the sales list
+                formContainer.style.display = 'none'; // Hide the form
+                notaArea.classList.remove('hidden'); // Show the receipt
+
+                document.getElementById('nota-tanggal').textContent = formatTanggal(tanggal);
+                document.getElementById('nota-nama').textContent = nama;
+                document.getElementById('nota-jenisBarang').textContent = jenisBarang;
+                document.getElementById('nota-harga').textContent = formatRupiah(harga);
+
+                // Hide the HP number field as it's not passed from the main page
+                const noHpElement = document.getElementById('nota-nomorHp').parentElement;
+                if (noHpElement) {
+                    noHpElement.style.display = 'none';
+                }
+            } else {
+                // --- MODE 2: Generate from form on this page (original functionality) ---
+                notaForm.addEventListener('submit', function(event) {
+                    event.preventDefault();
+
+                    const namaInput = document.getElementById('nama').value;
+                    const nomorHpInput = document.getElementById('nomorHp').value;
+                    const jenisBarangInput = document.getElementById('jenisBarang').value.replace(/\n/g, '<br>');
+                    const hargaInput = document.getElementById('harga').value;
+                    
+                    document.getElementById('nota-tanggal').textContent = formatTanggal(null); // Use today's date
+                    document.getElementById('nota-nama').textContent = namaInput;
+                    document.getElementById('nota-nomorHp').textContent = nomorHpInput;
+                    document.getElementById('nota-jenisBarang').innerHTML = jenisBarangInput;
+                    document.getElementById('nota-harga').textContent = formatRupiah(hargaInput);
+                    
+                    // Ensure HP number field is visible
+                    const noHpElement = document.getElementById('nota-nomorHp').parentElement;
+                    if (noHpElement) {
+                        noHpElement.style.display = 'block';
+                    }
+
+                    notaArea.classList.remove('hidden');
+                    notaArea.scrollIntoView({ behavior: 'smooth' });
+                    notaForm.reset();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
